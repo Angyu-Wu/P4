@@ -1,29 +1,31 @@
 from flask import Flask, request, jsonify
+import pickle
+import pandas as pd
 app = Flask(__name__)
 
 
-@app.route('/getmsg/', methods=['GET'])
+@app.route('/predict', methods=['GET'])
 def respond():
     # Retrieve the name from the url parameter /getmsg/?name=
-    name = request.args.get("name", None)
-
+    vol_moving_avg = request.args.get("vol_moving_avg", None)
+    adj_close_rolling_med = request.args.get("adj_close_rolling_med", None)
     # For debugging
-    print(f"Received: {name}")
+    #print(f"Received: {name}")
+    directory = rf'C:\Users\Wu\Desktop\book\stock dataset'
+    filename = directory+r'\finalized_model.sav'
+    loaded_model = pickle.load(open(filename, 'rb'))
+    d = {'vol_moving_avg': vol_moving_avg, 'adj_close_rolling_med': adj_close_rolling_med}
+    X = pd.DataFrame(data=d)
+    y_predicted = loaded_model.predict(X)
+    
+
 
     response = {}
-
+    response["Prediction"] = f''+str(y_predicted[0])
     # Check if the user sent a name at all
-    if not name:
-        response["ERROR"] = "No name found. Please send a name."
-    # Check if the user entered a number
-    elif str(name).isdigit():
-        response["ERROR"] = "The name can't be numeric. Please send a string."
-    else:
-        response["MESSAGE"] = f"Welcome {name} to our awesome API!"
 
     # Return the response in json format
     return jsonify(response)
-
 
 
 
